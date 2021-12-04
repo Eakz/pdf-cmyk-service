@@ -1,0 +1,38 @@
+{
+  "name": "pdf-cmyk-service",
+  "version": "1.0.0",
+  "description": "Microservice tool to transform RGB pdfs to CMYK",
+  "main": "index.ts",
+  "repository": "https://github.com/Eakz/pdf-cmyk-service.git",
+  "author": "EakzIT",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "lint": "yarn eslint --fix --color ./src/app.ts",
+    "prepare": "husky install",
+    "postinstall": "npx husky set ./.husky/pre-commit \"npx pretty-quick --staged\""
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "multer": "^1.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/node": "^16.11.11",
+    "@typescript-eslint/eslint-plugin": "^5.5.0",
+    "@typescript-eslint/parser": "^5.5.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "husky": "^7.0.4",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.0",
+    "pretty-quick": "^3.1.2",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.2"
+  },
+  "license": "MIT",
+  "private": true
+}
