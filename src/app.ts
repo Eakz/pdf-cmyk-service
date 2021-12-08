@@ -7,7 +7,6 @@ import Que from './cache';
 
 // Types
 type TfileType = 'rgbPdf';
-type Tresponse = 'SUCCESS' | 'FAIL' | 'BUSY';
 type TuploadFileType = {
   fieldname: TfileType;
   originalname: string;
@@ -69,6 +68,7 @@ app.post(
         (err, stdout, stderr) => {
           if (err) {
             // some err occurred
+            Que.removeProcessId(actionId);
             res
               .status(501)
               .json({ status: 'FAIL', error: JSON.stringify({ err }) });
@@ -87,8 +87,9 @@ app.post(
           }
         },
       );
-      if (req.params?.process)
+      if (req.params?.process) {
         Que.addProcessId({ key: actionId, id: childProcess.pid });
+      }
     } else {
       res.status(201).json({ status: 'BUSY' });
     }
