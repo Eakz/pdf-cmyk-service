@@ -12,7 +12,7 @@
     "start": "node dist/src/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "lint": "eslint . --ext .ts",
-    "format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+    "format": "prettier --config .prettierrc src/* --write"
   },
   "lint-staged": {
     "src/**/*.ts": [

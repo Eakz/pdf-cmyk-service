@@ -39,7 +39,15 @@ const upload = multer({
     },
   }),
 });
-
+// enable CORS without external module
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', 'https://service.eakzit.site');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept',
+  );
+  next();
+});
 app.post(
   '/:process',
   upload.single('rgbPdf'),
