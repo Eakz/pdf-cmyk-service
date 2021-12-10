@@ -107,7 +107,9 @@ app.get(
   corsAllowingMW(),
   (req: Request, res: Response) => {
     const fileName = req.params.fileName;
-    const convertedFolder = path.resolve(__dirname, '../data/cmyk');
+    const convertedFolder = path
+      .resolve(__dirname, '../data/cmyk')
+      .replace('/dist', '');
     res.download(path.resolve(convertedFolder, fileName), fileName, (err) => {
       if (err) {
         res.status(500).send({
