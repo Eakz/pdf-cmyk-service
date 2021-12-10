@@ -41,7 +41,7 @@ const upload = multer({
 });
 const corsAllowingMW =
   (allowedSites = '*') =>
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     res.header('Access-Control-Allow-Origin', allowedSites);
     res.header(
       'Access-Control-Allow-Headers',
@@ -54,11 +54,7 @@ app.use(corsAllowingMW('https://service.eakzit.site'));
 app.post(
   '/:process',
   upload.single('rgbPdf'),
-  async (
-    req: Request & { file?: TuploadFileType },
-    res: Response,
-    next: NextFunction,
-  ) => {
+  async (req: Request & { file?: TuploadFileType }, res: Response) => {
     const fileName = req.file.filename;
     const absPathToFile = path.join(process.cwd(), req.file.path);
     const folderPath = path.join(process.cwd(), convertFolder);
@@ -109,7 +105,7 @@ app.post(
 app.get(
   '/transformed/:fileName',
   corsAllowingMW(),
-  (req: Request, res: Response, next: NextFunction) => {
+  (req: Request, res: Response) => {
     const fileName = req.params.fileName;
     const convertedFolder = path.resolve(__dirname, '../data/cmyk');
     res.download(path.resolve(convertedFolder, fileName), fileName, (err) => {
@@ -121,27 +117,24 @@ app.get(
     });
   },
 );
-app.get(
-  '/:process',
-  async (req: Request, res: Response, next: NextFunction) => {
-    const key = req.params.process;
-    if (Que.hasProcessId(key) === 'SUCCESS') {
-      const id = Que.getProcessId(key);
-      if (typeof id === 'number') {
-        try {
-          const result = await process.kill(id, 'SIGKILL');
-          const result2 = await process.kill(id + 1, 'SIGKILL');
-          Que.removeProcessId(key);
-          res.status(200).json({ status: 'SUCCESS', result });
-        } catch (error) {
-          res.status(501).json({ status: 'FAIL', error });
-        }
+app.get('/:process', async (req: Request, res: Response) => {
+  const key = req.params.process;
+  if (Que.hasProcessId(key) === 'SUCCESS') {
+    const id = Que.getProcessId(key);
+    if (typeof id === 'number') {
+      try {
+        const result = await process.kill(id, 'SIGKILL');
+        const result2 = await process.kill(id + 1, 'SIGKILL');
+        Que.removeProcessId(key);
+        res.status(200).json({ status: 'SUCCESS', result: result && result2 });
+      } catch (error) {
+        res.status(501).json({ status: 'FAIL', error });
       }
-    } else {
-      res.status(500).json({ status: 'FAIL' });
     }
-  },
-);
+  } else {
+    res.status(500).json({ status: 'FAIL' });
+  }
+});
 // Start server
 app.listen(port, () =>
   console.log(
