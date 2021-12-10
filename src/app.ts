@@ -39,15 +39,18 @@ const upload = multer({
     },
   }),
 });
+const corsAllowingMW =
+  (allowedSites = '*') =>
+  (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', allowedSites);
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept',
+    );
+    next();
+  };
 // enable CORS without external module
-app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'https://service.eakzit.site');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept',
-  );
-  next();
-});
+app.use(corsAllowingMW('https://service.eakzit.site'));
 app.post(
   '/:process',
   upload.single('rgbPdf'),
@@ -101,6 +104,21 @@ app.post(
     } else {
       res.status(201).json({ status: 'BUSY' });
     }
+  },
+);
+app.get(
+  '/transformed/:fileName',
+  corsAllowingMW(),
+  (req: Request, res: Response, next: NextFunction) => {
+    const fileName = req.params.fileName;
+    const convertedFolder = path.resolve(__dirname, '../data/cmyk');
+    res.download(path.resolve(convertedFolder, fileName), fileName, (err) => {
+      if (err) {
+        res.status(500).send({
+          message: 'Could not download the file. ' + err,
+        });
+      }
+    });
   },
 );
 app.get(
