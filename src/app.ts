@@ -19,7 +19,7 @@ type TuploadFileType = {
 };
 
 // Config
-const port = 5000;
+const port = 5500;
 const oneMegabyteInBytes = 1000000;
 const uploadFolder = './data/uploads';
 const convertFolder = './data/cmyk';
@@ -60,7 +60,7 @@ app.post(
     const folderPath = path.join(process.cwd(), convertFolder);
     const cmykFileName = `CMYK-${fileName}`;
     const pathToCmykFile = path.join(`${folderPath}/${cmykFileName}`);
-    const actionId = req.params.process;
+    const actionId = req.params.process as string;
     if (!Que.queIsFull()) {
       const childProcess = await exec(
         `gs -dSAFER \
@@ -106,7 +106,7 @@ app.get(
   '/transformed/:fileName',
   corsAllowingMW(),
   (req: Request, res: Response) => {
-    const fileName = req.params.fileName;
+    const fileName = req.params.fileName as string;
     const convertedFolder = path
       .resolve(__dirname, '../data/cmyk')
       .replace('/dist', '');
@@ -120,7 +120,7 @@ app.get(
   },
 );
 app.get('/:process', async (req: Request, res: Response) => {
-  const key = req.params.process;
+  const key = req.params.process as string;
   if (Que.hasProcessId(key) === 'SUCCESS') {
     const id = Que.getProcessId(key);
     if (typeof id === 'number') {

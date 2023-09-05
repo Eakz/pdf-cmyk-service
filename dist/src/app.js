@@ -34,7 +34,14 @@ const upload = (0, multer_1.default)({
         },
     }),
 });
-app.post('/:process', upload.single('rgbPdf'), (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const corsAllowingMW = (allowedSites = '*') => (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', allowedSites);
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+};
+// enable CORS without external module
+app.use(corsAllowingMW('https://service.eakzit.site'));
+app.post('/:process', upload.single('rgbPdf'), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const fileName = req.file.filename;
     const absPathToFile = path_1.default.join(process.cwd(), req.file.path);
@@ -53,6 +60,7 @@ app.post('/:process', upload.single('rgbPdf'), (req, res, next) => __awaiter(voi
         -sOutputFile=${pathToCmykFile} ${absPathToFile}`, {}, (err, stdout, stderr) => {
             if (err) {
                 // some err occurred
+                cache_1.default.removeProcessId(actionId);
                 res
                     .status(501)
                     .json({ status: 'FAIL', error: JSON.stringify({ err }) });
@@ -71,14 +79,28 @@ app.post('/:process', upload.single('rgbPdf'), (req, res, next) => __awaiter(voi
                 });
             }
         });
-        if ((_a = req.params) === null || _a === void 0 ? void 0 : _a.process)
+        if ((_a = req.params) === null || _a === void 0 ? void 0 : _a.process) {
             cache_1.default.addProcessId({ key: actionId, id: childProcess.pid });
+        }
     }
     else {
         res.status(201).json({ status: 'BUSY' });
     }
 }));
-app.get('/:process', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/transformed/:fileName', corsAllowingMW(), (req, res) => {
+    const fileName = req.params.fileName;
+    const convertedFolder = path_1.default
+        .resolve(__dirname, '../data/cmyk')
+        .replace('/dist', '');
+    res.download(path_1.default.resolve(convertedFolder, fileName), fileName, (err) => {
+        if (err) {
+            res.status(500).send({
+                message: 'Could not download the file. ' + err,
+            });
+        }
+    });
+});
+app.get('/:process', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const key = req.params.process;
     if (cache_1.default.hasProcessId(key) === 'SUCCESS') {
         const id = cache_1.default.getProcessId(key);
@@ -87,7 +109,7 @@ app.get('/:process', (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 const result = yield process.kill(id, 'SIGKILL');
                 const result2 = yield process.kill(id + 1, 'SIGKILL');
                 cache_1.default.removeProcessId(key);
-                res.status(200).json({ status: 'SUCCESS', result });
+                res.status(200).json({ status: 'SUCCESS', result: result && result2 });
             }
             catch (error) {
                 res.status(501).json({ status: 'FAIL', error });
